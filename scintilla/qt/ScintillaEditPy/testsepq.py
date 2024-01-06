@@ -67,36 +67,36 @@ class Form(QDialog):
 		self.edit.setSel(1,10)
 		retriever = str(self.edit.getLine(1))
 		print(type(retriever), len(retriever))
-		print('[' + retriever + ']')
+		print(f'[{retriever}]')
 		someText = str(self.edit.textRange(2,5))
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 		someText = self.edit.getCurLine(100)
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 		someText = self.edit.styleFont(1)
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 		someText = self.edit.getSelText()
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 		someText = self.edit.tag(1)
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 		someText = self.edit.autoCCurrentText()
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 		someText = self.edit.annotationText(1)
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 		someText = self.edit.annotationStyles(1)
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 		someText = self.edit.describeKeyWordSets()
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 		someText = self.edit.propertyNames()
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 		self.edit.setProperty("fold", "1")
 		someText = self.edit.property("fold")
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 		someText = self.edit.propertyExpanded("fold")
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 		someText = self.edit.lexerLanguage()
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 		someText = self.edit.describeProperty("styling.within.preprocessor")
-		print(len(someText), '[' + someText + ']')
+		print(len(someText), f'[{someText}]')
 
 		xx = self.edit.findText(0, "main", 0, 25)
 		print(type(xx), xx)
@@ -123,11 +123,11 @@ class Form(QDialog):
 	def receive_command(self, wParam, lParam):
 		# Show underline at start when focussed
 		notifyCode = wParam >> 16
-		if (notifyCode == sci.SCEN_SETFOCUS) or (notifyCode == sci.SCEN_KILLFOCUS):
+		if notifyCode in [sci.SCEN_SETFOCUS, sci.SCEN_KILLFOCUS]:
 			self.edit.setIndicatorCurrent(sci.INDIC_CONTAINER);
 			self.edit.indicatorClearRange(0, self.edit.length())
-			if notifyCode == sci.SCEN_SETFOCUS:
-				self.edit.indicatorFillRange(0, 2);
+		if notifyCode == sci.SCEN_SETFOCUS:
+			self.edit.indicatorFillRange(0, 2);
 
 	def receive_notification(self, scn):
 		if scn.nmhdr.code == sci.SCN_CHARADDED:

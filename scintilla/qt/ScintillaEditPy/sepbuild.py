@@ -48,8 +48,9 @@ def textFromRun(args):
 
 def runProgram(args, exitOnFailure):
 	print(" ".join(args))
-	retcode = subprocess.call(" ".join(args), shell=True, stderr=subprocess.STDOUT)
-	if retcode:
+	if retcode := subprocess.call(
+		" ".join(args), shell=True, stderr=subprocess.STDOUT
+	):
 		print("Failed in " + " ".join(args) + " return code = " + str(retcode))
 		if exitOnFailure:
 			sys.exit()
@@ -86,17 +87,17 @@ def methodSignature(name, v, options):
 	if p1Type == "int":
 		p1Type = "sptr_t"
 	if p1Type:
-		argTypes = argTypes + p1Type
+		argTypes += p1Type
 	p2Type = WidgetGen.cppAlias(v["Param2Type"])
 	if p2Type == "int":
 		p2Type = "sptr_t"
 	if p2Type and v["Param2Type"] != "stringresult":
 		if p1Type:
-			argTypes = argTypes + ", "
+			argTypes = f"{argTypes}, "
 		argTypes = argTypes + p2Type
 	methodName = WidgetGen.normalisedName(name, options, v["FeatureType"])
 	constDeclarator = " const" if v["FeatureType"] == "get" else ""
-	return methodName + "(" + argTypes + ")" + constDeclarator
+	return f"{methodName}({argTypes}){constDeclarator}"
 
 def printTypeSystemFile(f, options):
 	out = []
@@ -107,17 +108,14 @@ def printTypeSystemFile(f, options):
 			if feat in ["fun", "get", "set"]:
 				checks = ""
 				if v["Param1Type"] == "string":
-					checks = checks + (injectCheckN % 0)
+					checks += injectCheckN % 0
 				if v["Param2Type"] == "string":
-					if v["Param1Type"] == "":	# Only arg 2 -> treat as first
-						checks = checks + (injectCheckN % 0)
-					else:
-						checks = checks + (injectCheckN % 1)
+					checks += injectCheckN % 0 if v["Param1Type"] == "" else injectCheckN % 1
 				if checks:
 					inject = injectCode % checks
 					out.append(modifyFunctionElement % (methodSignature(name, v, options), inject))
-				#if v["Param1Type"] == "string":
-				#	out.append("<string-xml>" + name + "</string-xml>\n")
+							#if v["Param1Type"] == "string":
+							#	out.append("<string-xml>" + name + "</string-xml>\n")
 	return out
 
 def doubleBackSlashes(s):
@@ -135,11 +133,7 @@ class SepBuilder:
 			self.MakeCommand = "make"
 			self.MakeTarget = ""
 
-		if PLAT_DARWIN:
-			self.QMakeOptions = "-spec macx-g++"
-		else:
-			self.QMakeOptions = ""
-
+		self.QMakeOptions = "-spec macx-g++" if PLAT_DARWIN else ""
 		# Default to debug build if running in a debug build interpreter
 		self.DebugBuild = hasattr(sys, 'getobjects')
 
@@ -154,7 +148,7 @@ class SepBuilder:
 		# Scintilla
 		with open("../../version.txt") as f:
 			version = f.read()
-			self.ScintillaVersion = version[0] + '.' + version[1] + '.' + version[2]
+			self.ScintillaVersion = f'{version[0]}.{version[1]}.{version[2]}'
 
 		# Find out what qmake is called
 		self.QMakeCommand = "qmake"
@@ -164,7 +158,9 @@ class SepBuilder:
 			self.QMakeCommand = os.path.basename(pathToQMake)
 
 		# Qt default location from qmake
-		self._SetQtIncludeBase(textFromRun(self.QMakeCommand + " -query QT_INSTALL_HEADERS").rstrip())
+		self._SetQtIncludeBase(
+			textFromRun(f"{self.QMakeCommand} -query QT_INSTALL_HEADERS").rstrip()
+		)
 
 		# PySide default location
 		# No standard for installing PySide development headers and libs on Windows so
@@ -180,9 +176,10 @@ class SepBuilder:
 		self.PySideBase = base
 		def _try_pkgconfig(var, package, *relpath):
 			try:
-				return textFromRun(["pkg-config", "--variable=" + var, package]).rstrip()
+				return textFromRun(["pkg-config", f"--variable={var}", package]).rstrip()
 			except OSError:
 				return os.path.join(self.PySideBase, *relpath)
+
 		self.PySideTypeSystem = _try_pkgconfig("typesystemdir", "pyside",
 		                                       "share", "PySide", "typesystems")
 		self.PySideIncludeBase = _try_pkgconfig("includedir", "pyside",
@@ -228,33 +225,37 @@ class SepBuilder:
 
 		args = [
 			generatorrunner,
-			"--generator-set=" + self.ShibokenGenerator,
+			f"--generator-set={self.ShibokenGenerator}",
 			"global.h ",
 			"--avoid-protected-hack",
 			"--enable-pyside-extensions",
-			"--include-paths=" + self.AllIncludes,
-			"--typesystem-paths=" + self.PySideTypeSystem,
+			f"--include-paths={self.AllIncludes}",
+			f"--typesystem-paths={self.PySideTypeSystem}",
 			"--output-directory=.",
-			"typesystem_ScintillaEdit.xml"]
+			"typesystem_ScintillaEdit.xml",
+		]
 		print(" ".join(args))
-		retcode = subprocess.call(" ".join(args), shell=True, stderr=subprocess.STDOUT)
-		if retcode:
-			print("Error - failed in generatorrunner " + str(retcode))
+		if retcode := subprocess.call(
+			" ".join(args), shell=True, stderr=subprocess.STDOUT
+		):
+			print(f"Error - failed in generatorrunner {str(retcode)}")
 			sys.exit()
 
 	def writeVariables(self):
 		# Write variables needed into file to be included from project so it does not have to discover much
 		with open(self.ProInclude, "w") as f:
-			f.write("SCINTILLA_VERSION=" + self.ScintillaVersion + "\n")
-			f.write("PY_VERSION=" + self.PyVersion + "\n")
-			f.write("PY_VERSION_SUFFIX=" + self.PyVersionSuffix + "\n")
-			f.write("PY_PREFIX=" + doubleBackSlashes(self.PyPrefix) + "\n")
-			f.write("PY_INCLUDES=" + doubleBackSlashes(self.PyIncludes) + "\n")
-			f.write("PY_LIBDIR=" + doubleBackSlashes(self.PyLibDir) + "\n")
-			f.write("PYSIDE_INCLUDES=" + doubleBackSlashes(self.PySideIncludeBase) + "\n")
-			f.write("PYSIDE_LIB=" + doubleBackSlashes(self.PySideLibDir) + "\n")
-			f.write("SHIBOKEN_INCLUDES=" + doubleBackSlashes(self.ShibokenIncludeBase) + "\n")
-			f.write("SHIBOKEN_LIB=" + doubleBackSlashes(self.ShibokenLibDir) + "\n")
+			f.write(f"SCINTILLA_VERSION={self.ScintillaVersion}" + "\n")
+			f.write(f"PY_VERSION={self.PyVersion}" + "\n")
+			f.write(f"PY_VERSION_SUFFIX={self.PyVersionSuffix}" + "\n")
+			f.write(f"PY_PREFIX={doubleBackSlashes(self.PyPrefix)}" + "\n")
+			f.write(f"PY_INCLUDES={doubleBackSlashes(self.PyIncludes)}" + "\n")
+			f.write(f"PY_LIBDIR={doubleBackSlashes(self.PyLibDir)}" + "\n")
+			f.write(f"PYSIDE_INCLUDES={doubleBackSlashes(self.PySideIncludeBase)}" + "\n")
+			f.write(f"PYSIDE_LIB={doubleBackSlashes(self.PySideLibDir)}" + "\n")
+			f.write(
+				f"SHIBOKEN_INCLUDES={doubleBackSlashes(self.ShibokenIncludeBase)}" + "\n"
+			)
+			f.write(f"SHIBOKEN_LIB={doubleBackSlashes(self.ShibokenLibDir)}" + "\n")
 			if self.DebugBuild:
 				f.write("CONFIG += debug\n")
 			else:
@@ -316,17 +317,14 @@ class SepBuilder:
 	def copyScintillaConstants(self):
 
 		orig = 'ScintillaConstants.py'
-		dest = '../../bin/' + orig
+		dest = f'../../bin/{orig}'
 		if IsFileNewer(dest, orig):
 			return
 
-		f = open(orig, 'r')
-		contents = f.read()
-		f.close()
-
-		f = open(dest, 'w')
-		f.write(contents)
-		f.close()
+		with open(orig, 'r') as f:
+			contents = f.read()
+		with open(dest, 'w') as f:
+			f.write(contents)
 
 	def _SetQtIncludeBase(self, base):
 

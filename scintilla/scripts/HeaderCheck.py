@@ -60,23 +60,21 @@ def CheckFiles(root):
                 #~ print("equal", masterHeaderList[m])
                 i += 1
                 m += 1
+            elif masterHeaderList[m] not in incs:
+                #~ print("skip", masterHeaderList[m])
+                m += 1
+            elif incs[i] not in masterHeaderList:
+                print(f"{f}:1: Add master", incs[i])
+                masterHeaderList.insert(m, incs[i])
+                i += 1
+                m += 1
             else:
-                if masterHeaderList[m] not in incs:
-                    #~ print("skip", masterHeaderList[m])
-                    m += 1
-                elif incs[i] not in masterHeaderList:
-                    print(f + ":1: Add master", incs[i])
-                    masterHeaderList.insert(m, incs[i])
-                    i += 1
-                    m += 1
-                else:
-                    print(f + ":1: Header out of order", incs[i], masterHeaderList[m])
-                    print("incs", " ".join(incs))
-                    i += 1
-                    #~ return
-        #print("Master header list", " ".join(masterHeaderList))
-    unused = sorted(set(masterHeaderList) - allIncs)
-    if unused:
+                print(f"{f}:1: Header out of order", incs[i], masterHeaderList[m])
+                print("incs", " ".join(incs))
+                i += 1
+                                #~ return
+            #print("Master header list", " ".join(masterHeaderList))
+    if unused := sorted(set(masterHeaderList) - allIncs):
         print("In HeaderOrder.txt but not used")
         print("\n".join(unused))
 
