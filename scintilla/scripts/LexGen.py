@@ -24,46 +24,85 @@ import win32.DepGen
 import gtk.DepGen
 
 def UpdateVersionNumbers(sci, root):
-    UpdateLineInFile(root + "win32/ScintRes.rc", "#define VERSION_SCINTILLA",
-        "#define VERSION_SCINTILLA \"" + sci.versionDotted + "\"")
-    UpdateLineInFile(root + "win32/ScintRes.rc", "#define VERSION_WORDS",
-        "#define VERSION_WORDS " + sci.versionCommad)
-    UpdateLineInFile(root + "qt/ScintillaEditBase/ScintillaEditBase.pro",
+    UpdateLineInFile(
+        f"{root}win32/ScintRes.rc",
+        "#define VERSION_SCINTILLA",
+        "#define VERSION_SCINTILLA \"" + sci.versionDotted + "\"",
+    )
+    UpdateLineInFile(
+        f"{root}win32/ScintRes.rc",
+        "#define VERSION_WORDS",
+        f"#define VERSION_WORDS {sci.versionCommad}",
+    )
+    UpdateLineInFile(
+        f"{root}qt/ScintillaEditBase/ScintillaEditBase.pro",
         "VERSION =",
-        "VERSION = " + sci.versionDotted)
-    UpdateLineInFile(root + "qt/ScintillaEdit/ScintillaEdit.pro",
+        f"VERSION = {sci.versionDotted}",
+    )
+    UpdateLineInFile(
+        f"{root}qt/ScintillaEdit/ScintillaEdit.pro",
         "VERSION =",
-        "VERSION = " + sci.versionDotted)
-    UpdateLineInFile(root + "doc/ScintillaDownload.html", "       Release",
-        "       Release " + sci.versionDotted)
-    ReplaceREInFile(root + "doc/ScintillaDownload.html",
+        f"VERSION = {sci.versionDotted}",
+    )
+    UpdateLineInFile(
+        f"{root}doc/ScintillaDownload.html",
+        "       Release",
+        f"       Release {sci.versionDotted}",
+    )
+    ReplaceREInFile(
+        f"{root}doc/ScintillaDownload.html",
         r"(/sourceforge.net/projects/scintilla/files/scintilla/)[\d\.]+(/[a-zA-Z]+)\d+",
-        r"\g<1>" +  sci.versionDotted + "\g<2>" + sci.version)
-    UpdateLineInFile(root + "doc/index.html",
+        r"\g<1>" + sci.versionDotted + "\g<2>" + sci.version,
+    )
+    UpdateLineInFile(
+        f"{root}doc/index.html",
         '          <font color="#FFCC99" size="3"> Release version',
-        '          <font color="#FFCC99" size="3"> Release version ' +\
-        sci.versionDotted + '<br />')
-    UpdateLineInFile(root + "doc/index.html",
+        '          <font color="#FFCC99" size="3"> Release version '
+        + sci.versionDotted
+        + '<br />',
+    )
+    UpdateLineInFile(
+        f"{root}doc/index.html",
         '           Site last modified',
-        '           Site last modified ' + sci.mdyModified + '</font>')
-    ReplaceREInFile(root + "doc/ScintillaHistory.html",
+        f'           Site last modified {sci.mdyModified}</font>',
+    )
+    ReplaceREInFile(
+        f"{root}doc/ScintillaHistory.html",
         r"(/sourceforge.net/projects/scintilla/files/scintilla/)[\d\.]+(/[a-zA-Z]+)\d+",
-        r"\g<1>" +  sci.versionDotted + "\g<2>" + sci.version,
-        count=1)
-    ReplaceREInFile(root + "doc/ScintillaHistory.html",
-        r">Release [\d\.]+<", ">Release " + sci.versionDotted + "<", count=1)
-    UpdateLineInFile(root + "doc/ScintillaHistory.html",
+        r"\g<1>" + sci.versionDotted + "\g<2>" + sci.version,
+        count=1,
+    )
+    ReplaceREInFile(
+        f"{root}doc/ScintillaHistory.html",
+        r">Release [\d\.]+<",
+        f">Release {sci.versionDotted}<",
+        count=1,
+    )
+    UpdateLineInFile(
+        f"{root}doc/ScintillaHistory.html",
         '	Released ',
-        '	Released ' + sci.dmyModified + '.')
-    UpdateLineInPlistFile(root + "cocoa/ScintillaFramework/Info.plist",
-        "CFBundleVersion", sci.versionDotted)
-    UpdateLineInPlistFile(root + "cocoa/ScintillaFramework/Info.plist",
-        "CFBundleShortVersionString", sci.versionDotted)
-    UpdateLineInFile(root + "LongTermDownload.html", "       Release",
-        "       Release " + sci.versionDotted)
-    ReplaceREInFile(root + "LongTermDownload.html",
+        '	Released ' + sci.dmyModified + '.',
+    )
+    UpdateLineInPlistFile(
+        f"{root}cocoa/ScintillaFramework/Info.plist",
+        "CFBundleVersion",
+        sci.versionDotted,
+    )
+    UpdateLineInPlistFile(
+        f"{root}cocoa/ScintillaFramework/Info.plist",
+        "CFBundleShortVersionString",
+        sci.versionDotted,
+    )
+    UpdateLineInFile(
+        f"{root}LongTermDownload.html",
+        "       Release",
+        f"       Release {sci.versionDotted}",
+    )
+    ReplaceREInFile(
+        f"{root}LongTermDownload.html",
         r"(/sourceforge.net/projects/scintilla/files/scintilla/)[\d\.]+(/[a-zA-Z]+)\d+",
-        r"\g<1>" +  sci.versionDotted + "\g<2>" + sci.version)
+        r"\g<1>" + sci.versionDotted + "\g<2>" + sci.version,
+    )
 
 # Last 24 digits of UUID, used for item IDs in Xcode
 def uid24():
@@ -102,8 +141,8 @@ def RegenerateXcodeProject(path, lexers, lexerReferences):
             lexerReferences[lexer] = [uid1, uid2]
             linePBXBuildFile = "\t\t{} /* {}.cxx in Sources */ = {{isa = PBXBuildFile; fileRef = {} /* {}.cxx */; }};".format(uid1, lexer, uid2, lexer)
             linePBXFileReference = "\t\t{} /* {}.cxx */ = {{isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = {}.cxx; path = ../../lexers/{}.cxx; sourceTree = SOURCE_ROOT; }};".format(uid2, lexer, lexer, lexer)
-            lineLexers = "\t\t\t\t{} /* {}.cxx */,".format(uid2, lexer)
-            linePBXSourcesBuildPhase = "\t\t\t\t{} /* {}.cxx in Sources */,".format(uid1, lexer)
+            lineLexers = f"\t\t\t\t{uid2} /* {lexer}.cxx */,"
+            linePBXSourcesBuildPhase = f"\t\t\t\t{uid1} /* {lexer}.cxx in Sources */,"
             sectionPBXBuildFile.append(linePBXBuildFile)
             sectionPBXFileReference.append(linePBXFileReference)
             sectionLexers.append(lineLexers)
@@ -133,8 +172,8 @@ def RegenerateAll(root):
 
     sci = ScintillaData.ScintillaData(root)
 
-    Regenerate(root + "src/Catalogue.cxx", "//", sci.lexerModules)
-    Regenerate(root + "win32/scintilla.mak", "#", sci.lexFiles)
+    Regenerate(f"{root}src/Catalogue.cxx", "//", sci.lexerModules)
+    Regenerate(f"{root}win32/scintilla.mak", "#", sci.lexFiles)
 
     startDir = os.getcwd()
     os.chdir(os.path.join(scintillaBase, "win32"))
@@ -143,8 +182,11 @@ def RegenerateAll(root):
     gtk.DepGen.Generate()
     os.chdir(startDir)
 
-    RegenerateXcodeProject(root + "cocoa/ScintillaFramework/ScintillaFramework.xcodeproj/project.pbxproj",
-        sci.lexFiles, sci.lexersXcode)
+    RegenerateXcodeProject(
+        f"{root}cocoa/ScintillaFramework/ScintillaFramework.xcodeproj/project.pbxproj",
+        sci.lexFiles,
+        sci.lexersXcode,
+    )
 
     UpdateVersionNumbers(sci, root)
 

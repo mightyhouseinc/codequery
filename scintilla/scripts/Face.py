@@ -55,9 +55,8 @@ class Face:
 		currentComment = []
 		currentCommentFinished = 0
 		file = open(name)
-		for line in file.readlines():
-			line = sanitiseLine(line)
-			if line:
+		for line in file:
+			if line := sanitiseLine(line):
 				if line[0] == "#":
 					if line[1] == " ":
 						if currentCommentFinished:
@@ -71,7 +70,7 @@ class Face:
 						try:
 							retType, name, value, param1, param2 = decodeFunction(featureVal)
 						except ValueError:
-							print("Failed to decode %s" % line)
+							print(f"Failed to decode {line}")
 							raise
 						p1 = decodeParam(param1)
 						p2 = decodeParam(param2)
@@ -84,7 +83,7 @@ class Face:
 							"Category": currentCategory, "Comment": currentComment
 						}
 						if value in self.values:
-							raise Exception("Duplicate value " + value + " " + name)
+							raise Exception(f"Duplicate value {value} {name}")
 						self.values[value] = 1
 						self.order.append(name)
 						currentComment = []
@@ -97,7 +96,7 @@ class Face:
 							"Category": currentCategory, "Comment": currentComment
 						}
 						if value in self.events:
-							raise Exception("Duplicate event " + value + " " + name)
+							raise Exception(f"Duplicate event {value} {name}")
 						self.events[value] = 1
 						self.order.append(name)
 					elif featureType == "cat":
@@ -106,14 +105,14 @@ class Face:
 						try:
 							name, value = featureVal.split("=", 1)
 						except ValueError:
-							print("Failure %s" % featureVal)
+							print(f"Failure {featureVal}")
 							raise Exception()
 						self.features[name] = {
 							"FeatureType": featureType,
 							"Category": currentCategory,
 							"Value": value }
 						self.order.append(name)
-					elif featureType == "enu" or featureType == "lex":
+					elif featureType in ["enu", "lex"]:
 						name, value = featureVal.split("=", 1)
 						self.features[name] = {
 							"FeatureType": featureType,

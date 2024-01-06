@@ -16,8 +16,9 @@ def findCategories(filename):
     return [v[2:] for v in values]
 
 def updateCharacterCategory(filename):
-    values = ["// Created with Python %s,  Unicode %s" % (
-        platform.python_version(), unicodedata.unidata_version)]
+    values = [
+        f"// Created with Python {platform.python_version()},  Unicode {unicodedata.unidata_version}"
+    ]
 
     startRange = 0
     category = unicodedata.category(chr(startRange))
